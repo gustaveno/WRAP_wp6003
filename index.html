@@ -9,7 +9,9 @@
     <h1>WP6003 Air Box Reader</h1>
 
     <h2>VSON WP6003 Bluetooth APP Air Quality Detector for PM Formaldehyde TVOC</h2>
-    <div style="text-align: center;"><img src="vson-wp6003.jpg" width="300" /></div>
+    <div style="text-align: center;"><img
+            src="https://external-preview.redd.it/ZVYhZAJV5lY4pusDdeOujLO2jG43aq-Qg_zaIRDdnvA.jpg?auto=webp&s=09dfb9fd21084b3628b22eac85f8e1e34565b183"
+            width="300" /></div>
 
     <fieldset>
         <legend>Read data:</legend>
@@ -17,7 +19,7 @@
         <button onclick="readData()">Read sensor data</button></br>
         <button onclick="sendCommand()">Send command</button></br>
         <input type="checkbox" id="autoRefresh" name="autoRefresh" onclick="autoRefresh()">
-        <label for="autoRefresh">Auto refresh values (30s)</label>
+        <label for="autoRefresh">Auto refresh values (5s)</label>
     </fieldset>
 
     <fieldset>
@@ -112,7 +114,7 @@
                 clearTimeout(autoRefreshInterval);
                 log('Auto refresh disabled');
             } else {
-                autoRefreshInterval = setInterval(() => readData(), 30000);
+                autoRefreshInterval = setInterval(() => readData(), 5000);
                 log('Auto refresh enabled');
                 readData();
             }
