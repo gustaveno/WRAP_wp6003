@@ -39,7 +39,9 @@
         <div id="console"></div>
     </fieldset>
 
-    </br></br>
+    </br>
+    <button onclick="downloadFile()">Download</button></br>
+    </br>
     <p>
         <b>Links: </b>
         <li><a href="http://www.vson.com.cn/English/Product/3614894931.html" target="_blank" rel="noopener">Official
@@ -62,6 +64,10 @@
         var readChar;
         var writeChar;
         var autoRefreshInterval;
+
+        hasilSensor = [
+            ['time', 'temperature', 'tvoc', 'hcho', 'co2']
+        ];
 
         async function initConnection() {
             if (service != null)
@@ -147,10 +153,7 @@
                 let hcho = value.getUint16(12) / 1000.0;
                 let co2 = value.getUint16(16);
 
-                exportToCsv('hasil.csv', [
-                    ['time', 'temperature', 'tvoc', 'hcho', 'co2'],
-                    [time, temp, tvoc, hcho, co2],
-                ]);
+                hasilSensor.push([time, temp, tvoc, hcho, co2]);
 
                 log(`Time: ${time} <br/>
                     Temp: ${temp} <br/>
@@ -160,8 +163,12 @@
 
             } catch (error) {
                 console.error(error);
-                log('Value parsing faild!');
+                log('Value parsing failed!');
             }
+        }
+
+        function downloadFile() {
+            exportToCsv('hasil.csv', hasilSensor);
         }
 
         async function getService(service) {
@@ -250,6 +257,10 @@
                 }
             }
         }
+
+        window.onbeforeunload = function (e) {
+            return downloadFile();
+        };
 
     </script>
     <style>
