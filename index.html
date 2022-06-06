@@ -168,7 +168,8 @@
         }
 
         function downloadFile() {
-            exportToCsv('${time}.csv', hasilSensor);
+            let time = new Date().toLocaleString();
+            exportToCsv(time, hasilSensor);
         }
 
         async function getService(service) {
