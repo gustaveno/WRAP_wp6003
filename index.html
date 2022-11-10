@@ -1,280 +1,56 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-    <title>WP6003 Air Box Reader</title>
-    <meta name="viewport" content="width=480">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tw-elements/dist/css/index.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+
+    <style>
+        .button {
+            background-color: #1c87c9;
+            border: none;
+            color: white;
+            padding: 20px 34px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 20px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>WP6003 Air Box Reader</h1>
+    <div class="w-screen h-screen flex justify-center items-center">
+        <button type="button" class="inline-block px-6 py-2.5 bg-transparent text-blue-600 font-medium text-lg leading-tight uppercase rounded hover:bg-gray-100 focus:text-blue-700 focus:bg-gray-100 focus:outline-none focus:ring-0 active:bg-gray-200 active:text-blue-800 transition duration-300 ease-in-out" onclick="window.open('./5sec.html');"">5 seconds</button>
+        <br>
+        <button type="button" class="inline-block px-6 py-2.5 bg-transparent text-blue-600 font-medium text-lg leading-tight uppercase rounded hover:bg-gray-100 focus:text-blue-700 focus:bg-gray-100 focus:outline-none focus:ring-0 active:bg-gray-200 active:text-blue-800 transition duration-300 ease-in-out" onclick="window.open('./30sec.html');"">30 seconds</button>
+        <br>
+        <button type="button" class="inline-block px-6 py-2.5 bg-transparent text-blue-600 font-medium text-lg leading-tight uppercase rounded hover:bg-gray-100 focus:text-blue-700 focus:bg-gray-100 focus:outline-none focus:ring-0 active:bg-gray-200 active:text-blue-800 transition duration-300 ease-in-out" onclick="window.open('./no-display.html');"">No Display</button>
+    </div>
 
-    <h2>VSON WP6003 Bluetooth APP Air Quality Detector for PM Formaldehyde TVOC</h2>
-    <div style="text-align: center;"><img
-            src="https://external-preview.redd.it/ZVYhZAJV5lY4pusDdeOujLO2jG43aq-Qg_zaIRDdnvA.jpg?auto=webp&s=09dfb9fd21084b3628b22eac85f8e1e34565b183"
-            width="300" /></div>
-
-    <fieldset>
-        <legend>Read data:</legend>
-        <button onclick="enableNotifications()">Enable notifications</button></br>
-        <button onclick="readData()">Read sensor data</button></br>
-        <button onclick="sendCommand()">Send command</button></br>
-        <input type="checkbox" id="autoRefresh" name="autoRefresh" onclick="autoRefresh()">
-        <label for="autoRefresh">Auto refresh values (5s)</label>
-    </fieldset>
-
-    <fieldset>
-        <legend>Sensor calibration:</legend>
-        <div style="font-size: 14px">
-            Before sensor calibration procedure please follow these instructions:
-            <ol>
-                <li>Take the device to a place with fresh air (such as balcony, outdoor);
-                <li>Keep the device runnin for more than 10 minutes; then take it indoor
-            </ol>
-        </div>
-        <button onclick="calibrate()">Calibrate</button>
-    </fieldset>
-
-    <fieldset>
-        <legend>Console:</legend>
-        <div id="console"></div>
-    </fieldset>
-
-    </br>
-    <button onclick="downloadFile()">Download</button></br>
-    </br>
-    <p>
-        <b>Links: </b>
-        <li><a href="http://www.vson.com.cn/English/Product/3614894931.html" target="_blank" rel="noopener">Official
-                website</a>
-        <li><a href="https://play.google.com/store/apps/details?id=com.vson.smarthome" target="_blank"
-                rel="noopener">Official app</a>
-        <li>Based on code <a href="https://github.com/zu2/wp6003" target="_blank" rel="noopener">zu2/wp6003</a>
-    </p>
-
-    <p>Use chrome developers tools for connection issues <a
-            href="chrome://bluetooth-internals/#devices/">chrome://bluetooth-internals/#devices/</a></p>
-
-    <script>
-
-        const SENSOR_SERVICE = '0000fff0-0000-1000-8000-00805f9b34fb';
-        const SENSOR_WRITE = '0000fff1-0000-1000-8000-00805f9b34fb';
-        const SENSOR_READ = '0000fff4-0000-1000-8000-00805f9b34fb';
-
-        var service;
-        var readChar;
-        var writeChar;
-        var autoRefreshInterval;
-
-        hasilSensor = [
-            ['time', 'temperature', 'tvoc', 'hcho', 'co2']
-        ];
-
-        async function initConnection() {
-            if (service != null)
-                return;
-
-            try {
-                service = await getService(SENSOR_SERVICE);
-
-                writeChar = await service.getCharacteristic(SENSOR_WRITE);
-                readChar = await service.getCharacteristic(SENSOR_READ);
-            } catch (error) {
-                console.error(error);
-                log('BT connection error. Please retry or refresh the browser.');
-            }
-        }
-
-        async function enableNotifications() {
-            await initConnection();
-
-            log('Enabaling notifications');
-            await readChar.startNotifications();
-            readChar.addEventListener('characteristicvaluechanged', handleNotifications);
-
-            log('Waiting on data... may take some time on a first read');
-        }
-
-        async function readData() {
-            await initConnection();
-
-            await writeChar.writeValue(Uint8Array.of(0xAB));
-        }
-
-        async function sendCommand() {
-            await initConnection();
-
-            let command = prompt('Enter a command in HEX');
-
-            await writeChar.writeValue(fromHexString(command));
-        }
-
-        async function calibrate() {
-            await initConnection();
-
-            await writeChar.writeValue(Uint8Array.of(0xAD));
-            log('Calabration started');
-        }
-
-        function autoRefresh() {
-            if (autoRefreshInterval) {
-                clearTimeout(autoRefreshInterval);
-                log('Auto refresh disabled');
-            } else {
-                autoRefreshInterval = setInterval(() => readData(), 5000);
-                log('Auto refresh enabled');
-                readData();
-            }
-        }
-
-
-        function handleNotifications(event) {
-            let value = event.target.value;
-
-            console.log(value);
-            console.log(toHexString(value));
-
-            let notificationType = value.getUint8(0);
-
-            switch (notificationType) {
-                case 0x0a:
-                case 0x0b:
-                    logSensorData(value);
-                    break;
-                default:
-                // nothing to decode
-            }
-        }
-
-        function logSensorData(value) {
-            try {
-                let time = new Date().toLocaleString();
-                let temp = value.getInt16(6) / 10.0;
-                let tvoc = value.getUint16(10) / 1000.0;
-                let hcho = value.getUint16(12) / 1000.0;
-                let co2 = value.getUint16(16);
-
-                hasilSensor.push([time, temp, tvoc, hcho, co2]);
-
-                log(`Time: ${time} <br/>
-                    Temp: ${temp} <br/>
-                    TVOC: ${tvoc} <br/>
-                    HCHO: ${hcho} <br/>
-                    CO2 : ${co2} <br/>`);
-
-            } catch (error) {
-                console.error(error);
-                log('Value parsing failed!');
-            }
-        }
-
-        function downloadFile() {
-            let time = new Date().toLocaleString();
-            exportToCsv(time, hasilSensor);
-        }
-
-        async function getService(service) {
-            if (!('bluetooth' in navigator)) {
-                throw 'Bluetooth API not supported.';
-            }
-
-            let options = {
-                acceptAllDevices: true,
-                optionalServices: [service]
-            };
-
-            return navigator.bluetooth.requestDevice(options)
-                .then(function (device) {
-                    log('Connecting...')
-                    return device.gatt.connect();
-                })
-                .then(function (server) {
-                    log('Getting primary service...')
-                    return server.getPrimaryService(service);
-                });
-        }
-
-        function log(message) {
-            let element = document.getElementById('console');
-            console.log(message);
-            element.innerHTML = message;
-        }
-
-        //https://stackoverflow.com/questions/38987784/how-to-convert-a-hexadecimal-string-to-uint8array-and-back-in-javascript
-        function fromHexString(hexString) {
-            if (hexString.length === 0 || hexString.length % 2 !== 0) {
-                throw new Error(`The string "${hexString}" is not valid hex.`)
-            }
-            return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-        }
-
-        function toHexString(data) {
-            let bytes = data;
-            if (data instanceof DataView) {
-                bytes = new Uint8Array(data.buffer);
-            }
-            return bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
-        }
-
-        // https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
-        function exportToCsv(filename, rows) {
-            var processRow = function (row) {
-                var finalVal = '';
-                for (var j = 0; j < row.length; j++) {
-                    var innerValue = row[j] === null ? '' : row[j].toString();
-                    if (row[j] instanceof Date) {
-                        innerValue = row[j].toLocaleString();
-                    };
-                    var result = innerValue.replace(/"/g, '""');
-                    if (result.search(/("|,|\n)/g) >= 0)
-                        result = '"' + result + '"';
-                    if (j > 0)
-                        finalVal += ',';
-                    finalVal += result;
-                }
-                return finalVal + '\n';
-            };
-
-            var csvFile = '';
-            for (var i = 0; i < rows.length; i++) {
-                csvFile += processRow(rows[i]);
-            }
-
-            var blob = new Blob([csvFile], {
-                type: 'text/csv;charset=utf-8;'
-            });
-            if (navigator.msSaveBlob) { // IE 10+
-                navigator.msSaveBlob(blob, filename);
-            } else {
-                var link = document.createElement("a");
-                if (link.download !== undefined) { // feature detection
-                    // Browsers that support HTML5 download attribute
-                    var url = URL.createObjectURL(blob);
-                    link.setAttribute("href", url);
-                    link.setAttribute("download", filename);
-                    link.style.visibility = 'hidden';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
-            }
-        }
-
-        window.onbeforeunload = function (e) {
-            return downloadFile();
-        };
-
-    </script>
-    <style>
-        body {
-            max-width: 400px;
-            margin: 0 auto;
-            font-family: Lato, 'Helvetica Neue', Arial, Helvetica, sans-serif;
-        }
-
-        fieldset>* {
-            margin: 5px;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/tw-elements/dist/js/index.min.js"></script>
 </body>
 
 </html>
