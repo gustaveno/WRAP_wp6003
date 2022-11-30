@@ -147,7 +147,17 @@
 
         function logSensorData(value) {
             try {
-                let time = new Date().toLocaleString();
+                const d = new Date();
+                year = d.getFullYear().toString();
+                month = d.getMonth().toString();
+                day = d.getDate().toString();
+                hour = d.getHours().toString()
+                minute = d.getMinutes().toString()
+                second = d.getSeconds().toString()
+
+                result = month.concat("-", day, "-", year, " ", hour, "_", minute, "_", second);
+
+                let time = result;
                 let temp = value.getInt16(6) / 10.0;
                 let tvoc = value.getUint16(10) / 1000.0;
                 let hcho = value.getUint16(12) / 1000.0;
